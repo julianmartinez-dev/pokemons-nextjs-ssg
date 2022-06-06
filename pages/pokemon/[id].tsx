@@ -1,16 +1,35 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { GetStaticPaths, GetStaticProps, NextPage } from 'next';
+import { Button, Card, Container, Grid, Image, Text } from '@nextui-org/react';
 import { Layout } from '../../components/layouts';
 import { pokeApi } from '../../api';
 import { Pokemon } from '../../interfaces';
-import { Button, Card, Container, Grid, Image, Text } from '@nextui-org/react';
-import { HeartIcon } from '../../components/ui';
+import { localFavorites } from '../../utils';
+import confetti from 'canvas-confetti';
 
 interface Props {
   pokemon: Pokemon;
 }
 
 const PokemonPage: NextPage<Props> = ({ pokemon }) => {
+  const [isFavorite, setIsFavorite] = useState(
+    localFavorites.isInFavorites(pokemon.id)
+  );
+
+  const onToggleFavorite = () => {
+    setIsFavorite(!isFavorite);
+    localFavorites.toggleFavorite(pokemon.id);
+
+    if (!isFavorite) {
+      confetti({
+        particleCount: 100,
+        angle: 90,
+        spread: 360,
+        origin: { x: 1, y: 0 },
+      });
+    }
+  };
+
   return (
     <Layout title={pokemon.name}>
       <Grid.Container css={{ marginTop: '5px' }} gap={2}>
@@ -33,30 +52,31 @@ const PokemonPage: NextPage<Props> = ({ pokemon }) => {
         <Grid xs={12} sm={8}>
           <Card>
             <Card.Header
-              css={{ display: 'flex', justifyContent: 'space-between' }}
+              css={{
+                display: 'flex',
+                flexDirection: 'column',
+                '@sm': {
+                  flexDirection: 'row',
+                  justifyContent: 'space-between',
+                },
+              }}
             >
               <Text transform="capitalize" h1>
                 {pokemon.name}
               </Text>
               <Button
+                flat
+                color={isFavorite ? 'error' : 'success'}
                 auto
-                color="error"
-                icon={
-                  <HeartIcon
-                    fill="currentColor"
-                    filled
-                    height={24}
-                    width={24}
-                    label={'favs'}
-                    size={24}
-                  />
-                }
-              />
+                onClick={onToggleFavorite}
+              >
+                {isFavorite ? 'Quitar de favoritos' : 'Guardar en favoritos'}
+              </Button>
             </Card.Header>
 
             <Card.Body>
               <Text size={30}>Sprites:</Text>
-              <Container display='flex' direction='row'>
+              <Container display="flex" direction="row">
                 <Image
                   src={pokemon.sprites.front_default}
                   alt={pokemon.name}
