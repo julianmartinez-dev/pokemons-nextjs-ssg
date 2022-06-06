@@ -3,7 +3,7 @@ import { GetStaticPaths, GetStaticProps, NextPage } from 'next';
 import { Button, Card, Container, Grid, Image, Text } from '@nextui-org/react';
 import { Layout } from '../../components/layouts';
 import { pokeApi } from '../../api';
-import { Pokemon } from '../../interfaces';
+import { Pokemon, PokemonListResponse } from '../../interfaces';
 import { localFavorites } from '../../utils';
 import confetti from 'canvas-confetti';
 
@@ -11,7 +11,9 @@ interface Props {
   pokemon: Pokemon;
 }
 
-const PokemonPage: NextPage<Props> = ({ pokemon }) => {
+const PokemonByNamePage: NextPage<Props> = ({ pokemon }) => {
+
+
   const [isFavorite, setIsFavorite] = useState(
     localFavorites.isInFavorites(pokemon.id)
   );
@@ -111,25 +113,28 @@ const PokemonPage: NextPage<Props> = ({ pokemon }) => {
 };
 
 export const getStaticPaths: GetStaticPaths = async (ctx) => {
-  const pokemons151 = [...Array(151)].map((value, index) => `${index + 1}`);
+  const { data } = await pokeApi.get<PokemonListResponse>('/pokemon?limit=151');
+  const pokemonsByName: string[] = data.results.map(
+    (poke: { name: string; url: string }) => poke.name
+  );
 
   return {
-    paths: pokemons151.map((pokemon) => ({ params: { id: pokemon } })),
+    paths:  pokemonsByName.map(pokemon => ({ params: { name: pokemon } })),
     fallback: false,
   };
 };
 
 export const getStaticProps: GetStaticProps = async ({ params }) => {
-  const { id } = params as { id: string };
+  const { name } = params as { name: string };
 
-  const { data } = await pokeApi.get<Pokemon>(`/pokemon/${id}`);
+  const { data } = await pokeApi.get<Pokemon>(`/pokemon/${name}`);
 
-    const pokemon = {
-      id: data.id,
-      name: data.name,
-      sprites: data.sprites,
-    };
-    
+  const pokemon = {
+    id: data.id,
+    name: data.name,
+    sprites: data.sprites,
+  }
+  
   return {
     props: {
       pokemon
@@ -137,4 +142,4 @@ export const getStaticProps: GetStaticProps = async ({ params }) => {
   };
 };
 
-export default PokemonPage;
+export default PokemonByNamePage;
