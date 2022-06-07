@@ -18,7 +18,7 @@ export const CardPoke: FC<Props> = ({ pokemon }) => {
       md={3}
       xl={2}
       key={pokemon.id}
-      onClick={() => router.push(`/pokemon/${pokemon.id}`)}
+      onClick={() => router.push(`/name/${pokemon.name}`)}
     >
       <Card hoverable clickable>
         <Card.Body css={{ p: 1 }}>
